@@ -5,28 +5,22 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: nginx:latest
+    image: nginx:alpine
     ports:
       - "80:80"
       - "443:443"
+    volumes:
+      - "./html:/usr/share/nginx/html"
     depends_on:
       - php
     networks:
       - network_app
 
   php:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: php:latest
-    environment:
-      - MYSQL_HOST=${MYSQL_HOST}
-      - MYSQL_DATABASE=${MYSQL_DATABASE}
-      - MYSQL_USER=${MYSQL_USER}
-      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+    image: nanoninja/php-fpm:latest
     volumes:
-      - ./html:/var/www/html
-    restart: unless-stopped
+      - "./html:/usr/share/nginx/html"
+    restart: always
     depends_on:
       - mysql
     networks:
@@ -34,6 +28,8 @@ services:
 
   mysql:
     image: mysql:latest
+    env_file:
+      - ".env"
     environment:
       - MYSQL_DATABASE=${MYSQL_DATABASE}
       - MYSQL_USER=${MYSQL_USER}

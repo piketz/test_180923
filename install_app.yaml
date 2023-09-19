@@ -43,11 +43,16 @@
         mode: 'a+x'
         force: yes
 
-    - name: Build and run Docker containers
+    - name: Build Docker containers
+      command: docker-compose build --no-cache
+      args:
+        chdir: /app/
+      environment:
+        env_file: .env
+
+    - name: Run Docker containers
       command: docker-compose up -d
       args:
         chdir: /app/
       environment:
         env_file: .env
-      register: docker_compose_result
-      changed_when: "'Creating' in docker_compose_result.stdout"
