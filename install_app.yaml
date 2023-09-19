@@ -1,0 +1,53 @@
+---
+- name: Deploy Dockerized Web App
+  hosts: webservers
+  become: true
+  gather_facts: false
+
+  tasks:
+    - name: Copy required files
+      copy:
+        src: "{{ item }}"
+        dest: /app/
+      with_items:
+        - docker-compose.yml
+        - .env
+        - Dockerfile
+        - html
+
+    - name: Generate nginx configuration file
+      template:
+        src: nginx.conf.j2
+        dest: /app/app.conf
+
+    - name: Add Docker repo
+      get_url:
+        url: https://download.docker.com/linux/centos/docker-ce.repo
+        dest: /etc/yum.repos.d/docker-ce.repo
+
+    - name: Install Docker
+      package:
+        name: docker-ce
+        state: latest
+
+    - name: Run Docker
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Install or upgrade docker-compose
+      get_url:
+        url : "https://github.com/docker/compose/releases/download/1.18.0/docker-compose-Linux-x86_64"
+        dest: /usr/local/bin/docker-compose
+        mode: 'a+x'
+        force: yes
+
+    - name: Build and run Docker containers
+      command: docker-compose up -d
+      args:
+        chdir: /app/
+      environment:
+        env_file: .env
+      register: docker_compose_result
+      changed_when: "'Creating' in docker_compose_result.stdout"

@@ -1,0 +1,55 @@
+version: '3'
+
+services:
+  nginx:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: nginx:latest
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - php
+    networks:
+      - network_app
+
+  php:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: php:latest
+    environment:
+      - MYSQL_HOST=${MYSQL_HOST}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+    volumes:
+      - ./html:/var/www/html
+    restart: unless-stopped
+    depends_on:
+      - mysql
+    networks:
+      - network_app
+
+  mysql:
+    image: mysql:latest
+    environment:
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_ROOT_PASSWORD= ${MYSQL_ROOT_PASSWORD}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - network_app
+
+networks:
+  network_app:
+    driver: bridge
+    ipam:
+     config:
+       - subnet: 172.16.98.0/24
+
+volumes:
+  mysql_data:
