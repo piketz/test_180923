@@ -13,8 +13,6 @@ services:
       - "./html:/usr/share/nginx/html"
     depends_on:
       - php
-    networks:
-      - network_app
 
   php:
     image: nanoninja/php-fpm:latest
@@ -23,8 +21,6 @@ services:
     restart: always
     depends_on:
       - mysql
-    networks:
-      - network_app
 
   mysql:
     image: mysql:latest
@@ -37,15 +33,6 @@ services:
       - MYSQL_ROOT_PASSWORD= ${MYSQL_ROOT_PASSWORD}
     volumes:
       - mysql_data:/var/lib/mysql
-    networks:
-      - network_app
-
-networks:
-  network_app:
-    driver: bridge
-    ipam:
-     config:
-       - subnet: 172.16.98.0/24
 
 volumes:
   mysql_data:
